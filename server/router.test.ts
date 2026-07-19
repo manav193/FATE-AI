@@ -89,6 +89,32 @@ test("routes native Groq accounts through the OpenAI-compatible endpoint", async
   }
 });
 
+test("routes native OpenRouter accounts through its OpenAI-compatible endpoint", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedUrl = "";
+  let requestedHeaders: unknown;
+  globalThis.fetch = async (input, init) => {
+    requestedUrl = String(input);
+    requestedHeaders = init?.headers;
+    return new Response(JSON.stringify({ choices: [{ message: { content: "openrouter connected" } }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const routed = await routeChat(
+      [{ id: "openrouter-free", provider: "openrouter", apiKey: "test-openrouter-key", model: "google/gemma-3-27b-it:free", priority: 10, enabled: true }],
+      { messages: [{ role: "user", content: "hello" }] },
+    );
+    assert.equal(routed.result.provider, "openrouter");
+    assert.equal(requestedUrl, "https://openrouter.ai/api/v1/chat/completions");
+    assert.equal((requestedHeaders as Record<string, string>)["X-Title"], "FATE AI");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("skips an invalid account and continues to another provider", async () => {
   const originalFetch = globalThis.fetch;
   let calls = 0;
