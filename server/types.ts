@@ -1,4 +1,4 @@
-export type ProviderName = "openai" | "gemini" | "anthropic";
+export type ProviderName = "openai" | "groq" | "gemini" | "anthropic";
 
 export interface ProviderAccount {
   id: string;
