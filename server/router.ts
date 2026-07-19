@@ -21,7 +21,6 @@ export async function routeChat(accounts: ProviderAccount[], request: ChatReques
     } catch (error) {
       const classified = classifyProviderError(error);
       attempts.push({ accountId: account.id, provider: account.provider, ...classified });
-      if (!classified.retryable) break;
     } finally {
       clearTimeout(timer);
     }
