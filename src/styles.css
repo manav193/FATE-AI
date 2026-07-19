@@ -311,6 +311,9 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px
 .message.error .message-meta span, .message.error p { color: var(--red); }
 .thinking { margin: 0 0 25px 46px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; }
 .composer-tools > span { color: var(--dim); font-size: 9px; }
+.route-picker { min-width: 0; height: 29px; padding: 0 8px; display: flex; align-items: center; gap: 5px; border: 1px solid var(--border); border-radius: 8px; color: var(--cyan); background: rgba(74,220,232,.04); }
+.route-picker select { max-width: 220px; border: 0; outline: 0; color: var(--cyan); background: transparent; font-size: 9px; cursor: pointer; appearance: none; }
+.route-picker option { color: var(--text); background: var(--surface); }
 .live-provider-row { grid-template-columns: 36px 42px minmax(150px, 1.5fr) minmax(160px, 1fr) 100px 80px; }
 .empty-state, .compare-empty { min-height: 220px; padding: 34px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--dim); }
 .empty-state h3, .compare-empty h3 { margin: 14px 0 6px; color: var(--text); font: 600 15px "Manrope"; }
@@ -344,6 +347,23 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px
 .search-modal kbd { font-size: 9px; }
 .search-modal > button { width: 100%; height: 42px; padding: 0 11px; border: 0; border-radius: 9px; display: flex; align-items: center; gap: 9px; color: var(--muted); background: transparent; cursor: pointer; }
 .search-modal > button:hover { color: var(--text); background: var(--surface); }
+.agent-output-panel { grid-template-rows: 42px minmax(300px, 1fr) 130px; }
+.agent-output { padding: 24px; }
+.agent-output pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.agent-loading, .agent-placeholder, .agent-error { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.agent-loading { gap: 8px; color: var(--cyan); }
+.agent-loading strong { margin-top: 8px; color: var(--text); font-size: 12px; }
+.agent-loading span, .agent-placeholder p { max-width: 470px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.agent-placeholder { color: var(--violet); }
+.agent-placeholder h3 { margin: 15px 0 5px; color: var(--text); font: 600 16px "Manrope"; }
+.agent-placeholder p { margin: 0; }
+.agent-error { gap: 10px; color: var(--red); }
+.agent-error strong { max-width: 480px; font-size: 11px; }
+.agent-form { margin-top: 22px; }
+.agent-form label { display: block; margin-top: 14px; color: var(--muted); font-size: 9px; font-weight: 600; }
+.agent-form textarea, .agent-form select { width: 100%; margin-top: 7px; border: 1px solid var(--border); border-radius: 10px; color: var(--text); background: var(--surface); font-size: 10px; }
+.agent-form textarea { padding: 10px; resize: vertical; line-height: 1.55; }
+.agent-form select { height: 38px; padding: 0 9px; }
 
 @media (max-width: 1050px) {
   .live-provider-row { grid-template-columns: 30px 40px 1fr 1fr 75px; }
@@ -354,6 +374,8 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px
   .history-list { max-height: 160px; }
   .prompt-chips { display: none; }
   .composer-tools > span { max-width: 190px; }
+  .composer-tools > span { display: none; }
+  .route-picker select { max-width: 170px; }
   .live-provider-row { grid-template-columns: 28px 38px 1fr 70px; }
   .live-provider-row .provider-model { display: none; }
   .usage-live { grid-template-columns: 32px 85px 1fr 55px; }
