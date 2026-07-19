@@ -104,7 +104,7 @@ test("routes native OpenRouter accounts through its OpenAI-compatible endpoint",
 
   try {
     const routed = await routeChat(
-      [{ id: "openrouter-free", provider: "openrouter", apiKey: "test-openrouter-key", model: "google/gemma-3-27b-it:free", priority: 10, enabled: true }],
+      [{ id: "openrouter-free", provider: "openrouter", apiKey: "test-openrouter-key", model: "google/gemma-4-26b-a4b-it:free", priority: 10, enabled: true }],
       { messages: [{ role: "user", content: "hello" }] },
     );
     assert.equal(routed.result.provider, "openrouter");
