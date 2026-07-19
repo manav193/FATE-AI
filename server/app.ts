@@ -2,6 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import { z } from "zod";
 import { loadProviderAccounts } from "./config";
+import { codingAgentPrompt, repositorySnapshot } from "./agent";
 import { recordRequest, usageSnapshot } from "./metrics";
 import { compareChat, NoRouteError, routeChat } from "./router";
 
@@ -13,6 +14,12 @@ const messageSchema = z.object({
 const chatSchema = z.object({
   messages: z.array(messageSchema).min(1).max(100),
   temperature: z.number().min(0).max(2).optional(),
+  preferredAccountId: z.string().trim().min(1).max(120).optional(),
+});
+
+const agentSchema = z.object({
+  task: z.string().trim().min(3).max(4_000),
+  preferredAccountId: z.string().trim().min(1).max(120).optional(),
 });
 
 export function createApp() {
@@ -89,6 +96,40 @@ export function createApp() {
     const successCount = results.filter((item) => item.ok).length;
     recordRequest(successCount > 0, Date.now() - startedAt, results.length - successCount);
     response.status(successCount ? 200 : 502).json({ results });
+  });
+
+  app.post("/api/agent/run", async (request, response) => {
+    const parsed = agentSchema.safeParse(request.body);
+    if (!parsed.success) {
+      response.status(400).json({ error: "Invalid coding-agent task", details: parsed.error.flatten() });
+      return;
+    }
+    const accounts = loadProviderAccounts();
+    if (!accounts.length) {
+      response.status(503).json({ error: "No provider accounts are configured" });
+      return;
+    }
+    const startedAt = Date.now();
+    try {
+      const snapshot = await repositorySnapshot();
+      const routed = await routeChat(accounts, { ...codingAgentPrompt(parsed.data.task, snapshot), preferredAccountId: parsed.data.preferredAccountId });
+      const latencyMs = Date.now() - startedAt;
+      recordRequest(true, latencyMs, routed.attempts.length);
+      response.json({
+        output: routed.result.text,
+        repository: snapshot.rootName,
+        filesScanned: snapshot.files,
+        route: { provider: routed.result.provider, accountId: routed.result.accountId, model: routed.result.model, failedAttempts: routed.attempts.length, latencyMs },
+        mode: "read-only",
+      });
+    } catch (error) {
+      recordRequest(false, Date.now() - startedAt);
+      if (error instanceof NoRouteError) {
+        response.status(502).json({ error: error.message });
+        return;
+      }
+      response.status(500).json({ error: error instanceof Error ? error.message : "Coding agent failed" });
+    }
   });
 
   app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
