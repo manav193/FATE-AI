@@ -103,6 +103,9 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px
 .composer-tools button { height: 28px; padding: 0 9px; border: 0; border-radius: 8px; display: flex; align-items: center; gap: 6px; color: var(--muted); background: transparent; font-size: 10px; }
 .composer-tools .mode-button { background: rgba(255,255,255,.035); color: var(--cyan); }
 .composer-tools .send-button { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; color: #fff; background: var(--violet-2); }
+.composer-tools .send-button:disabled { cursor: wait; opacity: .72; }
+.spin { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .context-panel { min-width: 0; padding: 24px 20px; border-left: 1px solid var(--border); background: rgba(12,16,24,.72); overflow: auto; }
 .context-panel section { padding: 0 0 22px; margin-bottom: 22px; border-bottom: 1px solid var(--border); }
 .context-panel .eyebrow { margin-left: 0; }
