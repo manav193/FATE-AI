@@ -2,6 +2,7 @@ import type { ProviderAccount, ProviderName } from "./types";
 
 const defaults: Record<ProviderName, string> = {
   openai: "gpt-4.1-mini",
+  groq: "llama-3.1-8b-instant",
   gemini: "gemini-2.5-flash",
   anthropic: "claude-sonnet-4-20250514",
 };
@@ -10,6 +11,7 @@ function fromEnvironment(): ProviderAccount[] {
   const accounts: ProviderAccount[] = [];
   const values: Array<[ProviderName, string | undefined, string | undefined]> = [
     ["openai", process.env.OPENAI_API_KEY, process.env.OPENAI_MODEL],
+    ["groq", process.env.GROQ_API_KEY, process.env.GROQ_MODEL],
     ["gemini", process.env.GEMINI_API_KEY, process.env.GEMINI_MODEL],
     ["anthropic", process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_MODEL],
   ];
@@ -23,6 +25,7 @@ function fromEnvironment(): ProviderAccount[] {
       model: model || defaults[provider],
       priority: accounts.length * 10 + 10,
       enabled: true,
+      baseUrl: provider === "groq" ? "https://api.groq.com/openai" : undefined,
     });
   }
 
@@ -37,7 +40,7 @@ function fromJson(value: string): ProviderAccount[] {
     if (!item || typeof item !== "object") throw new Error("Provider account at index " + index + " is invalid");
     const account = item as Record<string, unknown>;
     const provider = account.provider;
-    if (provider !== "openai" && provider !== "gemini" && provider !== "anthropic") {
+    if (provider !== "openai" && provider !== "groq" && provider !== "gemini" && provider !== "anthropic") {
       throw new Error("Unsupported provider at index " + index);
     }
     if (typeof account.apiKey !== "string" || account.apiKey.length < 8) {
