@@ -11,8 +11,11 @@ export class NoRouteError extends Error {
 
 export async function routeChat(accounts: ProviderAccount[], request: ChatRequest): Promise<{ result: ProviderResult; attempts: FailedAttempt[] }> {
   const attempts: FailedAttempt[] = [];
+  const orderedAccounts = request.preferredAccountId
+    ? [...accounts].sort((left, right) => Number(right.id === request.preferredAccountId) - Number(left.id === request.preferredAccountId))
+    : accounts;
 
-  for (const account of accounts) {
+  for (const account of orderedAccounts) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), providerTimeoutMs);
     const startedAt = Date.now();
