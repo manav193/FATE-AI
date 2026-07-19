@@ -2,7 +2,7 @@
 
 A professional multi-model AI workspace designed to keep conversations and coding tasks moving across officially connected AI providers.
 
-## What is included in the first foundation
+## What is included
 
 - Premium responsive chat workspace
 - Provider account pool with health, budget, latency, and priority visibility
@@ -10,6 +10,10 @@ A professional multi-model AI workspace designed to keep conversations and codin
 - Chat, model comparison, coding agent, provider vault, and usage views
 - Local interactive demo state with no secrets required
 - Type-safe provider and routing models
+- Real server-side OpenAI, Gemini, and Anthropic adapters
+- Multiple-account priority routing with retryable failover
+- Request validation, timeouts, secure headers, and redacted provider status
+- Automated routing tests
 
 > Consumer subscriptions such as ChatGPT Plus, Claude Pro, or Gemini Advanced are not API balances. FATE AI will support official provider APIs and provider-authorized OAuth flows only.
 
@@ -17,14 +21,15 @@ A professional multi-model AI workspace designed to keep conversations and codin
 
 ```bash
 npm install
+npm run test
 npm run dev
 ```
 
-Open the URL printed by Vite.
+Copy `.env.example` to `.env`, add at least one official provider API key, and open the URL printed by Vite. The client runs on port 4173 and proxies API requests to the server on port 4174.
 
 ## Current status
 
-This repository currently contains the product UI and routing-domain foundation. Provider authentication, encrypted server-side credential storage, real streaming completions, sandboxed coding execution, and durable usage tracking are the next implementation layers.
+The chat endpoint now performs real non-streaming completions and can fail over between configured accounts. Encrypted persistent credential storage, streaming, sandboxed coding execution, and durable usage tracking are the next implementation layers.
 
 ## Planned architecture
 
