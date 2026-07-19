@@ -127,6 +127,7 @@ function Topbar({ title, onMenu }: { title: string; onMenu: () => void }) {
 
 function ChatView() {
   const [draft, setDraft] = useState("");
+  const [pending, setPending] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -140,12 +141,44 @@ function ChatView() {
     },
   ]);
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     const value = draft.trim();
-    if (!value) return;
-    setMessages((current) => [...current, { id: Date.now(), role: "user", text: value }]);
+    if (!value || pending) return;
+    const userMessage = { id: Date.now(), role: "user", text: value };
+    const nextMessages = [...messages, userMessage];
+    setMessages(nextMessages);
     setDraft("");
+    setPending(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          messages: nextMessages.map((message) => ({
+            role: message.role,
+            content: message.text,
+          })),
+        }),
+      });
+      const body = (await response.json()) as { message?: string; error?: string };
+      if (!response.ok || !body.message) throw new Error(body.error || "The provider returned no response");
+      setMessages((current) => [...current, { id: Date.now() + 1, role: "assistant", text: body.message! }]);
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          id: Date.now() + 1,
+          role: "assistant",
+          text: error instanceof Error
+            ? "Connection unavailable: " + error.message + ". Add an official provider API key in .env and restart FATE AI."
+            : "Connection unavailable. Configure an official provider API key and restart FATE AI.",
+        },
+      ]);
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -187,7 +220,9 @@ function ChatView() {
           <textarea value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Ask anything, compare models, or start a coding task…" rows={2} />
           <div className="composer-tools">
             <div><button type="button"><Paperclip size={16} /> Attach</button><button type="button"><Layers3 size={16} /> Tools</button><button type="button" className="mode-button"><Sparkles size={15} /> Balanced <ChevronDown size={14} /></button></div>
-            <button className="send-button" aria-label="Send message"><ArrowUp size={18} /></button>
+            <button className="send-button" aria-label="Send message" disabled={pending}>
+              {pending ? <Activity className="spin" size={18} /> : <ArrowUp size={18} />}
+            </button>
           </div>
         </form>
       </main>
