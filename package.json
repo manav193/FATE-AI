@@ -9,7 +9,7 @@
     "start": "node dist/server.js",
     "preview": "vite preview",
     "lint": "tsc -p tsconfig.app.json --pretty false && tsc -p tsconfig.server.json --pretty false",
-    "test": "node --import tsx --test server/router.test.ts"
+    "test": "node --import tsx --test server/*.test.ts"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
