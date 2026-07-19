@@ -12,11 +12,31 @@ function fromEnvironment(): ProviderAccount[] {
   const accounts: ProviderAccount[] = [];
   const values: Array<[ProviderName, string | undefined, string | undefined]> = [
     ["openai", process.env.OPENAI_API_KEY, process.env.OPENAI_MODEL],
-    ["openrouter", process.env.OPENROUTER_API_KEY, process.env.OPENROUTER_MODEL],
     ["groq", process.env.GROQ_API_KEY, process.env.GROQ_MODEL],
     ["gemini", process.env.GEMINI_API_KEY, process.env.GEMINI_MODEL],
     ["anthropic", process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_MODEL],
   ];
+
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
+  if (openRouterKey) {
+    const configuredModels = process.env.OPENROUTER_MODELS
+      ?.split(",")
+      .map((model) => model.trim())
+      .filter(Boolean)
+      .slice(0, 25);
+    const models = [...new Set(configuredModels?.length ? configuredModels : [process.env.OPENROUTER_MODEL || defaults.openrouter])];
+    for (const [index, model] of models.entries()) {
+      accounts.push({
+        id: `openrouter-${index + 1}`,
+        provider: "openrouter",
+        apiKey: openRouterKey,
+        model,
+        priority: accounts.length * 10 + 10,
+        enabled: true,
+        baseUrl: "https://openrouter.ai/api",
+      });
+    }
+  }
 
   for (const [provider, apiKey, model] of values) {
     if (!apiKey) continue;
@@ -27,7 +47,7 @@ function fromEnvironment(): ProviderAccount[] {
       model: model || defaults[provider],
       priority: accounts.length * 10 + 10,
       enabled: true,
-      baseUrl: provider === "groq" ? "https://api.groq.com/openai" : provider === "openrouter" ? "https://openrouter.ai/api" : undefined,
+      baseUrl: provider === "groq" ? "https://api.groq.com/openai" : undefined,
     });
   }
 
