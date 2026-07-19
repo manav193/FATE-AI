@@ -29,7 +29,8 @@ function assertOk(response: Response, body: unknown): void {
 }
 
 async function openAi(account: ProviderAccount, request: ChatRequest, signal: AbortSignal): Promise<string> {
-  const response = await fetch((account.baseUrl || "https://api.openai.com") + "/v1/chat/completions", {
+  const defaultBaseUrl = account.provider === "groq" ? "https://api.groq.com/openai" : "https://api.openai.com";
+  const response = await fetch((account.baseUrl || defaultBaseUrl) + "/v1/chat/completions", {
     method: "POST",
     signal,
     headers: { "content-type": "application/json", authorization: "Bearer " + account.apiKey },
@@ -88,7 +89,7 @@ async function anthropic(account: ProviderAccount, request: ChatRequest, signal:
 
 export async function executeProvider(account: ProviderAccount, request: ChatRequest, signal: AbortSignal): Promise<ProviderResult> {
   const text =
-    account.provider === "openai"
+    account.provider === "openai" || account.provider === "groq"
       ? await openAi(account, request, signal)
       : account.provider === "gemini"
         ? await gemini(account, request, signal)
