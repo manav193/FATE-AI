@@ -14,7 +14,7 @@ interface Usage { startedAt: string; requests: number; successes: number; failur
 interface ComparisonResult { ok: boolean; provider: string; accountId: string; model: string; latencyMs: number; text?: string; reason?: string }
 
 const STORAGE_KEY = "fate-ai-conversations-v1";
-const ACCENTS: Record<string, string> = { openai: "#53d39d", groq: "#f28b55", gemini: "#55a7f3", anthropic: "#d49a62" };
+const ACCENTS: Record<string, string> = { openai: "#53d39d", openrouter: "#8b6cff", groq: "#f28b55", gemini: "#55a7f3", anthropic: "#d49a62" };
 const navGroups: { label: string; items: { name: WorkspaceView; icon: typeof MessageSquareText }[] }[] = [
   { label: "Workspace", items: [{ name: "Chat", icon: MessageSquareText }, { name: "Compare models", icon: SplitSquareVertical }, { name: "Coding agent", icon: Code2 }] },
   { label: "Manage", items: [{ name: "Provider vault", icon: KeyRound }, { name: "Usage & cost", icon: BarChart3 }] },
