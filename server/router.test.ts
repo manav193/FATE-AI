@@ -57,3 +57,34 @@ test("reports a clear error when no account is configured", async () => {
     (error: unknown) => error instanceof NoRouteError && error.attempts.length === 0,
   );
 });
+
+test("routes native Groq accounts through the OpenAI-compatible endpoint", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedUrl = "";
+  globalThis.fetch = async (input) => {
+    requestedUrl = String(input);
+    return new Response(JSON.stringify({ choices: [{ message: { content: "groq connected" } }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const routed = await routeChat(
+      [{
+        id: "groq-free",
+        provider: "groq",
+        apiKey: "test-groq-key",
+        model: "llama-3.1-8b-instant",
+        priority: 10,
+        enabled: true,
+      }],
+      { messages: [{ role: "user", content: "hello" }] },
+    );
+    assert.equal(routed.result.provider, "groq");
+    assert.equal(routed.result.text, "groq connected");
+    assert.equal(requestedUrl, "https://api.groq.com/openai/v1/chat/completions");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
