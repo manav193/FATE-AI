@@ -58,6 +58,25 @@ test("reports a clear error when no account is configured", async () => {
   );
 });
 
+test("moves a manually selected account to the front while keeping failover", async () => {
+  const originalFetch = globalThis.fetch;
+  const keys: string[] = [];
+  globalThis.fetch = async (_input, init) => {
+    keys.push((init?.headers as Record<string, string>).authorization);
+    return new Response(JSON.stringify({ choices: [{ message: { content: "manual route" } }] }), { status: 200 });
+  };
+  try {
+    const routed = await routeChat(accounts, {
+      messages: [{ role: "user", content: "hello" }],
+      preferredAccountId: "standby",
+    });
+    assert.equal(routed.result.accountId, "standby");
+    assert.equal(keys[0], "Bearer test-standby-key");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("routes native Groq accounts through the OpenAI-compatible endpoint", async () => {
   const originalFetch = globalThis.fetch;
   let requestedUrl = "";
