@@ -61,7 +61,7 @@ function ChatView({ conversation, providers, onUpdate, onCompare }: { conversati
     const next = [...messages, { id: uid(), role: "user" as const, text: prompt }];
     onUpdate(next); setDraft(""); setPending(true);
     try {
-      const response = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: next.map(({ role, text }) => ({ role, content: text })) }) });
+      const response = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: next.filter((message) => !message.error).map(({ role, text }) => ({ role, content: text })) }) });
       const body = await response.json() as { message?: string; error?: string; route?: RuntimeRoute };
       if (!response.ok || !body.message) throw new Error(body.error || "Provider returned no response");
       onUpdate([...next, { id: uid(), role: "assistant", text: body.message, route: body.route }]);
