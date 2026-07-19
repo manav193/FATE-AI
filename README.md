@@ -10,7 +10,7 @@ A professional multi-model AI workspace designed to keep conversations and codin
 - Chat, model comparison, coding agent, provider vault, and usage views
 - Local interactive demo state with no secrets required
 - Type-safe provider and routing models
-- Real server-side OpenAI, Gemini, and Anthropic adapters
+- Real server-side OpenAI, Groq, Gemini, and Anthropic adapters
 - Multiple-account priority routing with retryable failover
 - Request validation, timeouts, secure headers, and redacted provider status
 - Automated routing tests
