@@ -2,7 +2,7 @@ import type { ProviderAccount, ProviderName } from "./types";
 
 const defaults: Record<ProviderName, string> = {
   openai: "gpt-4.1-mini",
-  openrouter: "google/gemma-3-27b-it:free",
+  openrouter: "google/gemma-4-26b-a4b-it:free",
   groq: "llama-3.1-8b-instant",
   gemini: "gemini-2.5-flash",
   anthropic: "claude-sonnet-4-20250514",
