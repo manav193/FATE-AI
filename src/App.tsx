@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   ArrowUp,
@@ -65,11 +65,13 @@ function Sidebar({
   onChange,
   mobileOpen,
   onClose,
+  configuredAccounts,
 }: {
   active: WorkspaceView;
   onChange: (view: WorkspaceView) => void;
   mobileOpen: boolean;
   onClose: () => void;
+  configuredAccounts: number | null;
 }) {
   return (
     <>
@@ -103,7 +105,19 @@ function Sidebar({
         </nav>
 
         <div className="sidebar-bottom">
-          <div className="security-note"><ShieldCheck size={17} /><div><strong>Local demo mode</strong><span>No credentials connected</span></div></div>
+          <div className={"security-note " + (configuredAccounts ? "connected" : "")}>
+            <ShieldCheck size={17} />
+            <div>
+              <strong>{configuredAccounts ? "Provider runtime active" : "Local demo mode"}</strong>
+              <span>
+                {configuredAccounts === null
+                  ? "Checking provider runtime…"
+                  : configuredAccounts
+                    ? configuredAccounts + " credential account" + (configuredAccounts === 1 ? "" : "s") + " connected"
+                    : "No credentials connected"}
+              </span>
+            </div>
+          </div>
           <div className="profile-row"><div className="avatar">M</div><div><strong>Manav</strong><span>Personal workspace</span></div><MoreHorizontal size={18} /></div>
         </div>
       </aside>
@@ -340,10 +354,32 @@ function UsageView() {
 export default function App() {
   const [active, setActive] = useState<WorkspaceView>("Chat");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [configuredAccounts, setConfiguredAccounts] = useState<number | null>(null);
+
+  useEffect(() => {
+    let activeRequest = true;
+    fetch("/api/health")
+      .then((response) => response.json())
+      .then((body: { configuredAccounts?: number }) => {
+        if (activeRequest) setConfiguredAccounts(body.configuredAccounts ?? 0);
+      })
+      .catch(() => {
+        if (activeRequest) setConfiguredAccounts(0);
+      });
+    return () => {
+      activeRequest = false;
+    };
+  }, []);
 
   return (
     <div className="app-shell">
-      <Sidebar active={active} onChange={setActive} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <Sidebar
+        active={active}
+        onChange={setActive}
+        mobileOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        configuredAccounts={configuredAccounts}
+      />
       <section className="workspace">
         <Topbar title={active} onMenu={() => setMobileOpen(true)} />
         <div className="workspace-content">
