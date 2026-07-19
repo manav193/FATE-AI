@@ -18,6 +18,7 @@ export interface ChatMessage {
 export interface ChatRequest {
   messages: ChatMessage[];
   temperature?: number;
+  preferredAccountId?: string;
 }
 
 export interface ProviderResult {
