@@ -27,7 +27,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { providerAccounts, routeEvents } from "./data/providers";
+import { providerAccounts } from "./data/providers";
 import type { ProviderAccount, WorkspaceView } from "./types";
 
 const navGroups: { label: string; items: { name: WorkspaceView; icon: typeof MessageSquareText }[] }[] = [
@@ -139,27 +139,47 @@ function Topbar({ title, onMenu }: { title: string; onMenu: () => void }) {
   );
 }
 
+interface UiMessage {
+  id: number;
+  role: "user" | "assistant";
+  text: string;
+  routeLabel?: string;
+}
+
+interface RuntimeProvider {
+  id: string;
+  provider: string;
+  model: string;
+  priority: number;
+  enabled: boolean;
+}
+
+interface RuntimeRoute {
+  provider: string;
+  accountId: string;
+  model: string;
+  failedAttempts: number;
+}
+
 function ChatView() {
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      role: "user",
-      text: "Create a focused launch strategy for a reliable multi-model AI workspace.",
-    },
-    {
-      id: 2,
-      role: "assistant",
-      text: "Position it as continuity infrastructure, not another generic AI wrapper. The strongest wedge is transparent routing, provider redundancy, preserved context, and controlled cost.",
-    },
-  ]);
+  const [messages, setMessages] = useState<UiMessage[]>([]);
+  const [runtimeProviders, setRuntimeProviders] = useState<RuntimeProvider[]>([]);
+  const [lastRoute, setLastRoute] = useState<RuntimeRoute | null>(null);
+
+  useEffect(() => {
+    fetch("/api/providers")
+      .then((response) => response.json())
+      .then((body: { providers?: RuntimeProvider[] }) => setRuntimeProviders(body.providers ?? []))
+      .catch(() => setRuntimeProviders([]));
+  }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     const value = draft.trim();
     if (!value || pending) return;
-    const userMessage = { id: Date.now(), role: "user", text: value };
+    const userMessage: UiMessage = { id: Date.now(), role: "user", text: value };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
     setDraft("");
@@ -176,9 +196,20 @@ function ChatView() {
           })),
         }),
       });
-      const body = (await response.json()) as { message?: string; error?: string };
+      const body = (await response.json()) as { message?: string; error?: string; route?: RuntimeRoute };
       if (!response.ok || !body.message) throw new Error(body.error || "The provider returned no response");
-      setMessages((current) => [...current, { id: Date.now() + 1, role: "assistant", text: body.message! }]);
+      if (body.route) setLastRoute(body.route);
+      setMessages((current) => [
+        ...current,
+        {
+          id: Date.now() + 1,
+          role: "assistant",
+          text: body.message!,
+          routeLabel: body.route
+            ? body.route.provider.toUpperCase() + " · " + body.route.model
+            : "Smart Router",
+        },
+      ]);
     } catch (error) {
       setMessages((current) => [
         ...current,
@@ -199,21 +230,30 @@ function ChatView() {
     <div className="chat-layout">
       <main className="conversation">
         <div className="conversation-heading">
-          <div><span className="eyebrow">ACTIVE SESSION</span><h2>Launch strategy</h2></div>
-          <div className="model-stack">
-            {providerAccounts.slice(0, 3).map((account) => <ProviderMark key={account.id} account={account} compact />)}
-            <span>3 routes ready</span>
+          <div>
+            <span className="eyebrow">ACTIVE SESSION</span>
+            <h2>{messages.find((message) => message.role === "user")?.text.slice(0, 48) || "New conversation"}</h2>
           </div>
+          <div className="runtime-ready"><span /> {runtimeProviders.length || 0} route{runtimeProviders.length === 1 ? "" : "s"} ready</div>
         </div>
 
         <div className="messages">
-          <div className="date-divider"><span>Today</span></div>
+          {messages.length === 0 && (
+            <div className="empty-chat">
+              <div><Sparkles size={22} /></div>
+              <h3>What should we work on?</h3>
+              <p>Your first message starts a clean conversation. Demo text is never added to model context.</p>
+            </div>
+          )}
+          {messages.length > 0 && <div className="date-divider"><span>Today</span></div>}
           {messages.map((message) => (
             <article className={"message " + message.role} key={message.id}>
               {message.role === "assistant" && <div className="assistant-avatar"><Sparkles size={16} /></div>}
               <div>
                 <div className="message-meta">
-                  {message.role === "assistant" ? <><strong>FATE</strong><span>via OpenAI · Production 01</span></> : <strong>You</strong>}
+                  {message.role === "assistant"
+                    ? <><strong>FATE</strong><span>via {message.routeLabel || "Smart Router"}</span></>
+                    : <strong>You</strong>}
                 </div>
                 <p>{message.text}</p>
                 {message.role === "assistant" && (
@@ -223,11 +263,17 @@ function ChatView() {
             </article>
           ))}
 
-          <section className="route-insight">
+          {messages.length > 0 && <section className="route-insight">
             <div className="insight-icon"><Zap size={17} /></div>
-            <div><span>ROUTING INSIGHT</span><strong>Context checkpoint is ready</strong><p>If the primary account fails, the next response can continue through Google AI without losing this session.</p></div>
+            <div>
+              <span>ROUTING INSIGHT</span>
+              <strong>{lastRoute ? lastRoute.provider.toUpperCase() + " completed this response" : "Context checkpoint is ready"}</strong>
+              <p>{lastRoute?.failedAttempts
+                ? lastRoute.failedAttempts + " earlier route" + (lastRoute.failedAttempts === 1 ? " was" : "s were") + " skipped before success."
+                : "If this provider fails, FATE can continue through the next configured account."}</p>
+            </div>
             <span className="healthy-label"><i /> Healthy</span>
-          </section>
+          </section>}
         </div>
 
         <form className="composer" onSubmit={submit}>
@@ -242,10 +288,35 @@ function ChatView() {
       </main>
 
       <aside className="context-panel">
-        <section><span className="eyebrow">RUN DETAILS</span><div className="active-provider"><ProviderMark account={providerAccounts[0]} /><div><strong>{providerAccounts[0].model}</strong><span>{providerAccounts[0].accountName}</span></div><StatusDot status="healthy" /></div></section>
-        <section><div className="section-label"><span>Context</span><strong>46K / 128K</strong></div><div className="progress"><i style={{ width: "36%" }} /></div></section>
-        <section><span className="eyebrow">FAILOVER CHAIN</span><div className="route-list">{routeEvents.map((event, index) => <div className={"route-step " + event.state} key={event.id}><div className="route-index">{index + 1}</div><div><strong>{event.label}</strong><span>{event.reason}</span></div></div>)}</div></section>
-        <section className="session-stats"><span><small>Cost so far</small><strong>$0.47</strong></span><span><small>Latency</small><strong>1.68s</strong></span></section>
+        <section>
+          <span className="eyebrow">RUN DETAILS</span>
+          <div className="active-provider">
+            <div className="runtime-provider-mark">{(lastRoute?.provider || runtimeProviders[0]?.provider || "?").slice(0, 1).toUpperCase()}</div>
+            <div>
+              <strong>{lastRoute?.model || runtimeProviders[0]?.model || "No provider configured"}</strong>
+              <span>{lastRoute?.provider || runtimeProviders[0]?.provider || "Waiting for runtime"}</span>
+            </div>
+            {runtimeProviders.length > 0 && <StatusDot status="healthy" />}
+          </div>
+        </section>
+        <section>
+          <div className="section-label"><span>Session messages</span><strong>{messages.length}</strong></div>
+          <div className="progress"><i style={{ width: Math.min(100, messages.length * 4) + "%" }} /></div>
+        </section>
+        <section>
+          <span className="eyebrow">FAILOVER CHAIN</span>
+          <div className="route-list">
+            {runtimeProviders.length
+              ? runtimeProviders.map((provider, index) => (
+                  <div className={"route-step " + (lastRoute?.accountId === provider.id ? "active" : "ready")} key={provider.id}>
+                    <div className="route-index">{index + 1}</div>
+                    <div><strong>{provider.provider.toUpperCase()}</strong><span>{provider.model} · priority {provider.priority}</span></div>
+                  </div>
+                ))
+              : <p className="no-routes">No provider accounts detected.</p>}
+          </div>
+        </section>
+        <section className="session-stats"><span><small>Cost tracking</small><strong>—</strong></span><span><small>Failed routes</small><strong>{lastRoute?.failedAttempts ?? 0}</strong></span></section>
         <div className="vault-note"><ShieldCheck size={18} /><div><strong>Credential-safe design</strong><span>Future keys stay encrypted server-side and never enter chat state.</span></div></div>
       </aside>
     </div>
