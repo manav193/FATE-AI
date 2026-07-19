@@ -43,7 +43,8 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px
 .nav-item.active { color: #fff; background: var(--surface-2); box-shadow: inset 0 0 0 1px rgba(139,108,255,.22); }
 .nav-item small { margin-left: auto; padding: 3px 6px; border-radius: 6px; color: var(--cyan); background: rgba(74,220,232,.09); font-size: 8px; text-transform: uppercase; letter-spacing: .06em; }
 .sidebar-bottom { margin-top: auto; }
-.security-note { display: flex; gap: 9px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(59,218,165,.15); border-radius: 12px; color: var(--green); background: rgba(59,218,165,.045); }
+.security-note { display: flex; gap: 9px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(133,144,163,.16); border-radius: 12px; color: var(--muted); background: rgba(133,144,163,.04); }
+.security-note.connected { border-color: rgba(59,218,165,.22); color: var(--green); background: rgba(59,218,165,.055); }
 .security-note strong, .security-note span, .profile-row strong, .profile-row span { display: block; }
 .security-note strong { font-size: 11px; }
 .security-note span, .profile-row span { margin-top: 3px; font-size: 9px; color: var(--muted); }
@@ -63,9 +64,9 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px
 .router-chip > span { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px rgba(59,218,165,.7); }
 .icon-button, .menu-button { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; }
 .menu-button { display: none; margin-right: 12px; }
-.workspace-content { min-height: 0; flex: 1; }
+.workspace-content { min-height: 0; flex: 1; overflow: hidden; }
 .chat-layout { height: 100%; display: grid; grid-template-columns: minmax(500px, 1fr) 286px; }
-.conversation { min-width: 0; height: 100%; position: relative; display: flex; flex-direction: column; }
+.conversation { min-width: 0; min-height: 0; height: 100%; position: relative; display: flex; flex-direction: column; overflow: hidden; }
 .conversation-heading { padding: 28px 42px 16px; display: flex; justify-content: space-between; align-items: flex-end; }
 .conversation-heading .eyebrow { margin-left: 0; }
 .conversation-heading h2, .page-title h2 { margin: 0; font: 600 clamp(22px, 3vw, 28px) "Manrope"; }
@@ -74,7 +75,7 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px
 .model-stack span { margin-left: 8px; font-size: 10px; color: var(--muted); }
 .provider-mark { --provider: var(--violet); width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 12px; color: #fff; background: color-mix(in srgb, var(--provider) 72%, #111827); font-weight: 700; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--provider) 50%, transparent); }
 .provider-mark.compact { width: 28px; height: 28px; border-radius: 9px; font-size: 11px; }
-.messages { max-width: 760px; width: calc(100% - 70px); margin: 0 auto; padding-bottom: 180px; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.messages { max-width: 760px; width: calc(100% - 70px); min-height: 0; flex: 1; margin: 0 auto; padding-bottom: 170px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 .date-divider { display: flex; align-items: center; gap: 12px; margin: 12px 0 26px; color: var(--dim); font-size: 9px; text-transform: uppercase; letter-spacing: .12em; }
 .date-divider::before, .date-divider::after { content: ""; height: 1px; flex: 1; background: var(--border); }
 .message { display: flex; gap: 12px; margin-bottom: 28px; }
@@ -95,7 +96,7 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px
 .route-insight p { margin: 5px 0 0; font-size: 10px; color: var(--muted); }
 .healthy-label { margin-left: auto; white-space: nowrap; }
 .healthy-label i { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--green); }
-.composer { position: absolute; left: 50%; bottom: 22px; width: min(760px, calc(100% - 70px)); transform: translateX(-50%); padding: 13px; border: 1px solid #2b3548; border-radius: 17px; background: rgba(18,24,36,.94); box-shadow: 0 18px 60px rgba(0,0,0,.38); backdrop-filter: blur(18px); }
+.composer { position: absolute; z-index: 6; left: 50%; bottom: 22px; width: min(760px, calc(100% - 70px)); transform: translateX(-50%); padding: 13px; border: 1px solid #2b3548; border-radius: 17px; background: rgba(18,24,36,.97); box-shadow: 0 18px 60px rgba(0,0,0,.52); backdrop-filter: blur(18px); }
 .composer textarea { width: 100%; resize: none; padding: 0 3px; border: 0; color: var(--text); background: transparent; font-size: 12px; line-height: 1.5; }
 .composer textarea::placeholder { color: var(--dim); }
 .composer-tools, .composer-tools > div { display: flex; align-items: center; gap: 6px; }
