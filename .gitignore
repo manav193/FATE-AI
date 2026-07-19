@@ -6,5 +6,8 @@ dist
 .DS_Store
 *.local
 *.log
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
 .vscode
 .idea
