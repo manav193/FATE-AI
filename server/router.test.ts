@@ -88,3 +88,43 @@ test("routes native Groq accounts through the OpenAI-compatible endpoint", async
     globalThis.fetch = originalFetch;
   }
 });
+
+test("skips an invalid account and continues to another provider", async () => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    if (calls === 1) {
+      return new Response(JSON.stringify({ error: { message: "invalid key" } }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ choices: [{ message: { content: "fallback worked" } }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const routed = await routeChat(
+      [
+        accounts[0],
+        {
+          id: "groq-fallback",
+          provider: "groq",
+          apiKey: "test-groq-key",
+          model: "llama-3.1-8b-instant",
+          priority: 20,
+          enabled: true,
+        },
+      ],
+      { messages: [{ role: "user", content: "continue" }] },
+    );
+    assert.equal(routed.result.provider, "groq");
+    assert.equal(routed.result.text, "fallback worked");
+    assert.equal(routed.attempts[0].status, 401);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
